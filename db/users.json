@@ -1,0 +1,22 @@
+{
+	"users": [
+		{
+			"firstName": "Ram",
+			"lastName": "Ram",
+			"email": "ram@gmail.com",
+			"password": 23
+		},
+		{
+			"firstName": "Ram",
+			"lastName": "Ram",
+			"email": "ram@gmail.com",
+			"password": 23
+		},
+		{
+			"firstName": "sf",
+			"lastName": "ad",
+			"email": "amit@tilint.com",
+			"password": "234"
+		}
+	]
+}

@@ -2,7 +2,9 @@ const express = require('express');
 const app = express();
 const port = 5000;
 const cors = require('cors');
-var bodyParser = require('body-parser');
+const bodyParser = require('body-parser');
+const fs = require('fs');
+let users = [];
 app.use(
 	bodyParser.urlencoded({
 		extended: true,
@@ -11,37 +13,23 @@ app.use(
 app.use(bodyParser.json());
 
 app.use(cors());
-
-let users = {
-	usersList: [
-		{
-			uid: 1,
-			firstName: 'Amit',
-			lastName: 'Tes',
-			email: 'amit@gmail.com',
-			password: 12345,
-			petsIds: [1, 2, 3],
-		},
-		{
-			uid: 2,
-			firstName: 'gev',
-			lastName: 'eli',
-			email: 'gev@gmail.com',
-			password: 6688,
-			petsIds: [4, 5, 6],
-		},
-	],
-};
+app.use((req, res, next) => {
+	users = fs.readFileSync('./db/users.json', 'utf8');
+	users = JSON.parse(users);
+	// console.log(users);
+	next();
+});
 
 app.get('/users', (req, res) => {
 	res.send(users);
 });
 
 app.post('/users/newUser', (req, res) => {
-	console.log(req.body.newUser);
-	setNewUser({
-		...users.usersList,
-		[e.target.name]: e.target.value,
+	// console.log(req.body.newUser);
+	users.users.push(req.body.newUser);
+	console.log(users);
+	fs.writeFile('./db/users.json', `\n${JSON.stringify(users)}`, (err) => {
+		if (err) console.log(err);
 	});
 	res.send(req.body);
 });

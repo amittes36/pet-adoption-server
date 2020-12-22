@@ -6,6 +6,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const jwt = require('jsonwebtoken');
+let tokenes = [];
 let users = [];
 let pets = [];
 app.use(
@@ -50,23 +51,27 @@ app.post('/users/login', (req, res) => {
 	);
 	// else res.status(500).send('not allowed');
 	// if (user) res.status(200).send('Log in success');
-	console.log(user);
-
-	const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SERCRET);
+	const accessToken = generateAccessToken(user);
 	res.json({ accessToken: accessToken });
 });
 
 function authenticateToken(req, res, next) {
 	const authHeader = req.headers['authorization'];
+
 	const token = authHeader && authHeader.split(' ')[1];
+	console.log(token);
 
 	if (token == null) return res.sendStatus(401);
 
-	jwt.verify(token, process.env.ACCESS_TOKEN_SERCRET, (err, user) => {
+	jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
 		if (err) return res.sendStatus(403);
 		req.user = user;
 		next();
 	});
+}
+
+function generateAccessToken(user) {
+	return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET);
 }
 
 app.listen(port, () => {

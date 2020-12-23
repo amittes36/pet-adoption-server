@@ -42,6 +42,15 @@ app.post('/users/newUser', (req, res) => {
 	res.send(req.body);
 });
 
+app.post('/addPet', (req, res) => {
+	console.log(req.body.newPet);
+	pets.pets.push(req.body.newPet);
+	fs.writeFile('./db/pets.json', `\n${JSON.stringify(pets)}`, (err) => {
+		if (err) console.log(err);
+	});
+	res.send(req.body);
+});
+
 app.post('/users/login', (req, res) => {
 	// console.log(req.body.loginUser.email);
 	const userEmail = req.body.loginUser.email;
@@ -52,7 +61,7 @@ app.post('/users/login', (req, res) => {
 	// else res.status(500).send('not allowed');
 	// if (user) res.status(200).send('Log in success');
 	const accessToken = generateAccessToken(user);
-	res.json({ accessToken: accessToken });
+	res.json({ accessToken: accessToken, user: user });
 });
 
 function authenticateToken(req, res, next) {

@@ -16,13 +16,30 @@
 			"firstName": "sf",
 			"lastName": "ad",
 			"email": "amit@gmail.com",
-			"password": "234"
+			"password": "234",
+			"usersPets": [
+				"a8847475-b52d-4600-bcfd-7a4d449fa3d3",
+				"fa0d46e0-46af-40a0-ae89-cee7b27fe99c"
+			]
 		},
 		{
 			"firstName": "oved",
 			"lastName": "haruvi",
 			"email": "oved@gmail.com",
 			"password": "13"
+		},
+		{
+			"firstName": "dd",
+			"lastName": "danan",
+			"email": "dd@gmail.com",
+			"password": "11"
+		},
+		{
+			"firstName": "yoad",
+			"lastName": "maz",
+			"email": "yo@gmail.com",
+			"password": "123",
+			"usersPets": ""
 		}
 	]
 }

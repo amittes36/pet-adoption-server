@@ -29,9 +29,79 @@ app.get('/users', (req, res) => {
 	res.json(users);
 });
 
-app.get('/pets', authenticateToken, (req, res) => {
+app.get('/pets', (req, res) => {
 	req.user;
 	res.send(pets);
+});
+
+app.get('/adopt', authenticateToken, (req, res) => {
+	for (let i in pets.pets) {
+		if (pets.pets[i].id == req.query.petId) {
+			pets.pets[i].status = 'Adopted';
+		}
+	}
+	fs.writeFile('./db/pets.json', `\n${JSON.stringify(pets)}`, (err) => {
+		if (err) console.log(err);
+	});
+	for (let i in users.users) {
+		if (users.users[i].id == req.query.userId) {
+			let usersPets = users.users[i].usersPets;
+			usersPets.push(req.query.petId);
+			users.users[i].usersPets = usersPets;
+		}
+	}
+	fs.writeFile('./db/users.json', `\n${JSON.stringify(users)}`, (err) => {
+		if (err) console.log(err);
+	});
+	res.send(req.body);
+});
+
+app.get('/foster', authenticateToken, (req, res) => {
+	for (let i in pets.pets) {
+		if (pets.pets[i].id == req.query.petId) {
+			pets.pets[i].status = 'Fostered';
+		}
+	}
+	fs.writeFile('./db/pets.json', `\n${JSON.stringify(pets)}`, (err) => {
+		if (err) console.log(err);
+	});
+	for (let i in users.users) {
+		if (users.users[i].id == req.query.userId) {
+			let usersPets = users.users[i].usersPets;
+			usersPets.push(req.query.petId);
+			users.users[i].usersPets = usersPets;
+		}
+	}
+	fs.writeFile('./db/users.json', `\n${JSON.stringify(users)}`, (err) => {
+		if (err) console.log(err);
+	});
+	res.send(req.body);
+});
+
+app.get('/return', authenticateToken, (req, res) => {
+	for (let i in pets.pets) {
+		if (pets.pets[i].id == req.query.petId) {
+			pets.pets[i].status = 'Availble';
+		}
+	}
+
+	fs.writeFile('./db/pets.json', `\n${JSON.stringify(pets)}`, (err) => {
+		if (err) console.log(err);
+	});
+
+	for (let i in users.users) {
+		if (users.users[i].id == req.query.userId) {
+			let usersPets = users.users[i].usersPets;
+			const indexToRemove = usersPets.indexOf(req.query.petId);
+			usersPets.splice(indexToRemove, 1);
+			users.users[i].usersPets = usersPets;
+		}
+	}
+	fs.writeFile('./db/users.json', `\n${JSON.stringify(users)}`, (err) => {
+		if (err) console.log(err);
+	});
+
+	res.send(req.body);
 });
 
 app.post('/users/newUser', (req, res) => {
@@ -43,7 +113,6 @@ app.post('/users/newUser', (req, res) => {
 });
 
 app.post('/addPet', (req, res) => {
-	console.log(req.body.newPet);
 	pets.pets.push(req.body.newPet);
 	fs.writeFile('./db/pets.json', `\n${JSON.stringify(pets)}`, (err) => {
 		if (err) console.log(err);
@@ -66,12 +135,8 @@ app.post('/users/login', (req, res) => {
 
 function authenticateToken(req, res, next) {
 	const authHeader = req.headers['authorization'];
-
 	const token = authHeader && authHeader.split(' ')[1];
-	console.log(token);
-
 	if (token == null) return res.sendStatus(401);
-
 	jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
 		if (err) return res.sendStatus(403);
 		req.user = user;

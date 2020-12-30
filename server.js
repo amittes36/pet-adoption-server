@@ -1,14 +1,40 @@
 require('dotenv').config();
 const express = require('express');
 const app = express();
+const multer = require('multer');
+const path = require('path');
+const mongoose = require('mongoose');
 const port = 5000;
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const jwt = require('jsonwebtoken');
+const storage = multer.diskStorage({
+	destination: 'public/photo-gallery/',
+	filename: function (req, file, cb) {
+		cb(
+			null,
+			file.fieldname + '-' + Date.now() + path.extname(file.originalname)
+		);
+	},
+});
+const upload = multer({
+	storage: storage,
+}).single('img');
+
 let tokenes = [];
 let users = [];
 let pets = [];
+
+mongoose.connect(
+	`mongodb+srv://admin_user:${process.env.DB_PASS}@cluster0.8pu0h.mongodb.net/<dbname>?retryWrites=true&w=majority`,
+	{
+		useUnifiedTopology: true,
+		useNewUrlParser: true,
+	}
+);
+const db = mongoose.connection;
+
 app.use(
 	bodyParser.urlencoded({
 		extended: true,
@@ -27,6 +53,23 @@ app.use((req, res, next) => {
 
 app.get('/users', (req, res) => {
 	res.json(users);
+});
+
+const usersRouter = require('./routs/usersRouter.js');
+app.use('/usersTest', usersRouter);
+app.get('/petsByUserId', (req, res) => {
+	console.log(req.query);
+	for (let i in users.users) {
+		console.log(users.users[i].id);
+		console.log(req.query.userId);
+
+		if (users.users[i].id === req.query.userId) {
+			console.log('found');
+			console.log(users.users[i].usersPets);
+			res.send(users.users[i].usersPets);
+		}
+	}
+	// console.log(users.users);
 });
 
 app.get('/pets', (req, res) => {
@@ -81,7 +124,7 @@ app.get('/foster', authenticateToken, (req, res) => {
 app.get('/return', authenticateToken, (req, res) => {
 	for (let i in pets.pets) {
 		if (pets.pets[i].id == req.query.petId) {
-			pets.pets[i].status = 'Availble';
+			pets.pets[i].status = 'Available';
 		}
 	}
 
@@ -111,11 +154,37 @@ app.post('/users/newUser', (req, res) => {
 	});
 	res.send(req.body);
 });
+app.post('/uploadImg', (req, res) => {
+	console.log('ypypyppypy');
 
+	res.send('Uploaded Img');
+});
 app.post('/addPet', (req, res) => {
 	pets.pets.push(req.body.newPet);
 	fs.writeFile('./db/pets.json', `\n${JSON.stringify(pets)}`, (err) => {
 		if (err) console.log(err);
+	});
+	let images;
+	upload(req, res, (err) => {
+		if (err) {
+			console.log(err);
+			res.render('app');
+		} else {
+			fs.readFile('./db/images.json', 'utf8', (err, data, next) => {
+				console.log(req.file);
+				// console.log(req.file);
+				images = data;
+				processImg(images, req.body);
+
+				function processImg(images, newImgData) {
+					images = JSON.parse(images);
+					images.images.push(newImgData);
+					fs.writeFile('images.json', JSON.stringify(images), (err) => {
+						if (err) console.log(err);
+					});
+				}
+			});
+		}
 	});
 	res.send(req.body);
 });

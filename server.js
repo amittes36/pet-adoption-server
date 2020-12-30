@@ -190,7 +190,6 @@ app.post('/addPet', (req, res) => {
 });
 
 app.post('/users/login', (req, res) => {
-	// console.log(req.body.loginUser.email);
 	const userEmail = req.body.loginUser.email;
 	const user = users.users.find(
 		(user) =>

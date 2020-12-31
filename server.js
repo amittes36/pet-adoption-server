@@ -57,6 +57,9 @@ app.get('/users', (req, res) => {
 
 const usersRouter = require('./routs/usersRouter.js');
 app.use('/usersTest', usersRouter);
+const petsRouter = require('./routs/petsRouter.js');
+app.use('/pets', petsRouter);
+
 app.get('/petsByUserId', (req, res) => {
 	console.log(req.query);
 	for (let i in users.users) {
@@ -72,10 +75,10 @@ app.get('/petsByUserId', (req, res) => {
 	// console.log(users.users);
 });
 
-app.get('/pets', (req, res) => {
-	req.user;
-	res.send(pets);
-});
+// app.get('/pets', (req, res) => {
+// 	req.user;
+// 	res.send(pets);
+// });
 
 app.get('/adopt', authenticateToken, (req, res) => {
 	for (let i in pets.pets) {
@@ -189,17 +192,17 @@ app.post('/addPet', (req, res) => {
 	res.send(req.body);
 });
 
-app.post('/users/login', (req, res) => {
-	const userEmail = req.body.loginUser.email;
-	const user = users.users.find(
-		(user) =>
-			user.email == userEmail && user.password == req.body.loginUser.password
-	);
-	// else res.status(500).send('not allowed');
-	// if (user) res.status(200).send('Log in success');
-	const accessToken = generateAccessToken(user);
-	res.json({ accessToken: accessToken, user: user });
-});
+// app.post('/users/login', (req, res) => {
+// 	const userEmail = req.body.loginUser.email;
+// 	const user = users.users.find(
+// 		(user) =>
+// 			user.email == userEmail && user.password == req.body.loginUser.password
+// 	);
+// 	// else res.status(500).send('not allowed');
+// 	// if (user) res.status(200).send('Log in success');
+// 	const accessToken = generateAccessToken(user);
+// 	res.json({ accessToken: accessToken, user: user });
+// });
 
 function authenticateToken(req, res, next) {
 	const authHeader = req.headers['authorization'];

@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../models/users');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const { get } = require('./petsRouter');
 
 function authenticateToken(req, res, next) {
 	const authHeader = req.headers['authorization'];
@@ -41,9 +42,11 @@ router.get('/all', async (req, res) => {
 		res.status(500).json({ message: err.message });
 	}
 });
+
 router.get('/:id', getUser, (req, res) => {
 	res.send(res.user);
 });
+
 async function getUser(req, res, next) {
 	try {
 		user = await User.findById(req.params.id);
@@ -66,16 +69,53 @@ router.post('/', async (req, res) => {
 		password: newUserInfo.password,
 		usersPets: [],
 	});
-	console.log(user);
+	let error = user.validateSync();
+	if (error) {
+		console.log(Object.keys(error.errors)[0]);
+		const unValidField = Object.keys(error.errors)[0];
+		const errorPath = error.errors[`${unValidField}`].properties.path;
+		// console.log(error.errors[`${errorPath}`].properties.message);
+		// console.log(error.errors);
+
+		return res
+			.status(400)
+			.json(error.errors[`${errorPath}`].properties.message);
+	} else {
+		try {
+			const newUser = await user.save();
+			res.json(newUser);
+		} catch (err) {
+			res.status(400).json({ message: err.message });
+		}
+	}
+});
+router.patch('/:id', getUser, async (req, res) => {
+	console.log(req.body);
+	const updatedInfo = req.body.updatedInfo;
+
+	if (updatedInfo.firstName != null) {
+		console.log('has a firstname');
+
+		res.user.firstName = updatedInfo.firstName;
+	}
+	if (updatedInfo.lastName != null) {
+		res.user.lastName = updatedInfo.lastName;
+	}
+	if (updatedInfo.email != null) {
+		res.user.email = updatedInfo.email;
+	}
+	if (updatedInfo.password != null) {
+		res.user.password = updatedInfo.password;
+	}
 
 	try {
-		const newUser = await user.save();
-		console.log('hop');
-		res.json(newUser);
-	} catch (err) {
-		console.log('nono');
+		const updatedUser = await res.user.save();
+		console.log(updatedUser);
 
+		res.json(updatedUser);
+	} catch (err) {
 		res.status(400).json({ message: err.message });
 	}
 });
+
 module.exports = router;

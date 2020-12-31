@@ -16,6 +16,7 @@ const usersSchema = new mongoose.Schema({
 	password: {
 		type: String,
 		required: true,
+		minlength: [4, 'Password is too short'],
 	},
 	userPets: {
 		type: Array,

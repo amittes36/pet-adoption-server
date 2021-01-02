@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Pet = require('../models/pets');
 const jwt = require('jsonwebtoken');
-const cors = require('cors');
 
 function authenticateToken(req, res, next) {
 	const authHeader = req.headers['authorization'];
@@ -27,6 +26,25 @@ router.get('/all', async (req, res) => {
 		res.status(500).json({ message: err.message });
 	}
 });
+//get pet by type
+router.get('/search/:searchInfo', async (req, res) => {
+	const searchInfo = JSON.parse(req.params.searchInfo);
+	console.log(searchInfo);
+	// console.log(
+	// `first propery object::: ${searchInfo[Object.keys(searchInfo)[0]]}`
+	// );
+
+	// all_db_users = await users_collection.find();
+
+	try {
+		const resultsPets = await Pet.find(searchInfo);
+		// console.log(resultsPets);
+		res.json(resultsPets);
+	} catch (err) {
+		res.status(500).json({ message: err.message });
+	}
+	res.send('ok');
+});
 router.get('/:id', getPet, (req, res) => {
 	res.send(res.pet);
 });
@@ -34,7 +52,7 @@ async function getPet(req, res, next) {
 	try {
 		pet = await Pet.findById(req.params.id);
 		if (pet == null) {
-			return res.status(404).json({ message: 'Cannot find user' });
+			return res.status(404).json({ message: 'Cannot find pet' });
 		}
 	} catch (err) {
 		return res.status(500).json({ message: err.message });

@@ -41,6 +41,14 @@ const petsSchema = new mongoose.Schema({
 		type: String,
 		required: true,
 	},
+	breed: {
+		type: String,
+		required: true,
+	},
+	petImg: {
+		type: String,
+		required: true,
+	},
 });
 
 module.exports = mongoose.model('Pet', petsSchema);

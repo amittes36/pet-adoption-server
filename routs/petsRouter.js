@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const Pet = require('../models/pets');
 const jwt = require('jsonwebtoken');
+const cors = require('cors');
+const { cloudinary } = require('../utils/cloudinary');
+router.use(cors());
 
 function authenticateToken(req, res, next) {
 	const authHeader = req.headers['authorization'];
@@ -28,22 +31,14 @@ router.get('/all', async (req, res) => {
 });
 //get pet by type
 router.get('/search/:searchInfo', async (req, res) => {
-	const searchInfo = JSON.parse(req.params.searchInfo);
-	console.log(searchInfo);
-	// console.log(
-	// `first propery object::: ${searchInfo[Object.keys(searchInfo)[0]]}`
-	// );
-
-	// all_db_users = await users_collection.find();
-
 	try {
+		const searchInfo = JSON.parse(req.params.searchInfo);
 		const resultsPets = await Pet.find(searchInfo);
-		// console.log(resultsPets);
+		// const resultsPets = 'okokoko';
 		res.json(resultsPets);
 	} catch (err) {
 		res.status(500).json({ message: err.message });
 	}
-	res.send('ok');
 });
 router.get('/:id', getPet, (req, res) => {
 	res.send(res.pet);
@@ -62,30 +57,32 @@ async function getPet(req, res, next) {
 }
 
 router.post('/addPet', async (req, res) => {
-	console.log(req.body);
-
-	const newPetInfo = req.body.newPet;
-	const pet = new Pet({
-		name: newPetInfo.name,
-		status: newPetInfo.status,
-		description: newPetInfo.description,
-		type: newPetInfo.type,
-		height: newPetInfo.height,
-		weight: newPetInfo.weight,
-		color: newPetInfo.color,
-		hypoallergenic: newPetInfo.hypoallergenic,
-		diet: newPetInfo.diet,
-		breed: newPetInfo.breed,
-	});
-	console.log(pet);
-
 	try {
+		const uploadedResponse = await cloudinary.uploader.upload(
+			req.body.newPet.petImg
+		);
+		const imgUrl = uploadedResponse.url;
+		console.log(imgUrl);
+
+		// console.log(`uploadedImg:=:${JSON.stringify(uploadedResponse)}`);
+
+		const newPetInfo = req.body.newPet;
+		const pet = new Pet({
+			name: newPetInfo.name,
+			status: newPetInfo.status,
+			description: newPetInfo.description,
+			type: newPetInfo.type,
+			height: newPetInfo.height,
+			weight: newPetInfo.weight,
+			color: newPetInfo.color,
+			hypoallergenic: newPetInfo.hypoallergenic,
+			diet: newPetInfo.diet,
+			breed: newPetInfo.breed,
+			petImg: imgUrl,
+		});
 		const newPet = await pet.save();
-		console.log('hop');
 		res.json(newPet);
 	} catch (err) {
-		console.log('nono');
-
 		res.status(400).json({ message: err.message });
 	}
 });

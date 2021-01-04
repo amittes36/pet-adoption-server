@@ -22,10 +22,12 @@ function generateAccessToken(user) {
 
 router.post('/login', async (req, res) => {
 	const userEmail = req.body.loginUser.email;
-	const user = await User.find(
-		{ email: req.body.loginUser.email },
-		{ password: req.body.loginUser.password }
-	).limit(1);
+	const user = await User.find({
+		$and: [
+			{ email: req.body.loginUser.email },
+			{ password: req.body.loginUser.password },
+		],
+	}).limit(1);
 	if (user[0]) {
 		const accessToken = generateAccessToken(JSON.stringify(user));
 		res.json({ accessToken: accessToken, user: user });
@@ -89,13 +91,9 @@ router.post('/', async (req, res) => {
 		}
 	}
 });
-router.patch('/:id', getUser, async (req, res) => {
-	console.log(req.body);
+router.patch('/:id', authenticateToken, getUser, async (req, res) => {
 	const updatedInfo = req.body.updatedInfo;
-
 	if (updatedInfo.firstName != null) {
-		console.log('has a firstname');
-
 		res.user.firstName = updatedInfo.firstName;
 	}
 	if (updatedInfo.lastName != null) {
@@ -107,11 +105,8 @@ router.patch('/:id', getUser, async (req, res) => {
 	if (updatedInfo.password != null) {
 		res.user.password = updatedInfo.password;
 	}
-
 	try {
 		const updatedUser = await res.user.save();
-		console.log(updatedUser);
-
 		res.json(updatedUser);
 	} catch (err) {
 		res.status(400).json({ message: err.message });

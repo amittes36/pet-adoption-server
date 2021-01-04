@@ -1,14 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const Pet = require('../models/pets');
+const User = require('../models/users');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const { cloudinary } = require('../utils/cloudinary');
+
 router.use(cors());
 
 function authenticateToken(req, res, next) {
 	const authHeader = req.headers['authorization'];
 	const token = authHeader && authHeader.split(' ')[1];
+
 	if (token == null) return res.sendStatus(401);
 	jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
 		if (err) return res.sendStatus(403);
@@ -21,6 +24,52 @@ function generateAccessToken(user) {
 	return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET);
 }
 
+router.patch(
+	'/adopt/:petId/:userId/:fosterPet',
+	authenticateToken,
+	async (req, res) => {
+		try {
+			const fosterPet = req.params.fosterPet;
+			console.log(fosterPet);
+
+			const userId = req.params.userId;
+			const updatedUser = await User.findById(userId);
+			updatedUser.userPets.push(req.params.petId);
+			await User.updateOne({ _id: userId }, { userPets: updatedUser.userPets });
+			if (fosterPet == 'true') {
+				await Pet.updateOne({ _id: req.params.petId }, { status: 'Fostered' });
+			} else
+				await Pet.updateOne({ _id: req.params.petId }, { status: 'Adopted' });
+
+			res.json('ok');
+		} catch (err) {
+			res.status(400).json({ message: err.message });
+		}
+	}
+);
+router.patch(
+	'/return/:petId/:userId/:fosterPet',
+	authenticateToken,
+	async (req, res) => {
+		try {
+			const userId = req.params.userId;
+			const petId = req.params.petId;
+			const updatedUser = await User.findById(userId);
+			const index = updatedUser.userPets.indexOf(petId);
+			if (index > -1) {
+				updatedUser.userPets.splice(index, 1);
+			}
+
+			await User.updateOne({ _id: userId }, { userPets: updatedUser.userPets });
+			await Pet.updateOne({ _id: petId }, { status: 'Available' });
+
+			res.json('ok');
+		} catch (err) {
+			res.status(400).json({ message: err.message });
+		}
+	}
+);
+
 router.get('/all', async (req, res) => {
 	try {
 		const pets = await Pet.find();
@@ -29,12 +78,11 @@ router.get('/all', async (req, res) => {
 		res.status(500).json({ message: err.message });
 	}
 });
-//get pet by type
+
 router.get('/search/:searchInfo', async (req, res) => {
 	try {
 		const searchInfo = JSON.parse(req.params.searchInfo);
 		const resultsPets = await Pet.find(searchInfo);
-		// const resultsPets = 'okokoko';
 		res.json(resultsPets);
 	} catch (err) {
 		res.status(500).json({ message: err.message });
@@ -56,7 +104,7 @@ async function getPet(req, res, next) {
 	next();
 }
 
-router.post('/addPet', async (req, res) => {
+router.post('/addPet', authenticateToken, async (req, res) => {
 	try {
 		const uploadedResponse = await cloudinary.uploader.upload(
 			req.body.newPet.petImg
@@ -81,8 +129,11 @@ router.post('/addPet', async (req, res) => {
 			petImg: imgUrl,
 		});
 		const newPet = await pet.save();
+
 		res.json(newPet);
 	} catch (err) {
+		console.log(err);
+
 		res.status(400).json({ message: err.message });
 	}
 });

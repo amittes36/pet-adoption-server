@@ -9,18 +9,6 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const jwt = require('jsonwebtoken');
-const storage = multer.diskStorage({
-	destination: 'public/photo-gallery/',
-	filename: function (req, file, cb) {
-		cb(
-			null,
-			file.fieldname + '-' + Date.now() + path.extname(file.originalname)
-		);
-	},
-});
-const upload = multer({
-	storage: storage,
-}).single('img');
 
 let tokenes = [];
 let users = [];
@@ -34,10 +22,12 @@ mongoose.connect(
 	}
 );
 const db = mongoose.connection;
-
+app.use(bodyParser.json({ limit: '50mb' }));
 app.use(
 	bodyParser.urlencoded({
+		limit: '50mb',
 		extended: true,
+		parameterLimit: 50000,
 	})
 );
 app.use(bodyParser.json());
@@ -72,13 +62,7 @@ app.get('/petsByUserId', (req, res) => {
 			res.send(users.users[i].usersPets);
 		}
 	}
-	// console.log(users.users);
 });
-
-// app.get('/pets', (req, res) => {
-// 	req.user;
-// 	res.send(pets);
-// });
 
 app.get('/adopt', authenticateToken, (req, res) => {
 	for (let i in pets.pets) {

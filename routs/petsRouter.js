@@ -30,12 +30,9 @@ router.patch(
 	async (req, res) => {
 		try {
 			const fosterPet = req.params.fosterPet;
-			console.log(fosterPet);
-
 			const userId = req.params.userId;
 			const updatedUser = await User.findById(userId);
 			const pet = await Pet.findById(req.params.petId);
-			console.log(pet.status);
 			if (pet.status != 'Fostered') updatedUser.userPets.push(req.params.petId);
 			await User.updateOne({ _id: userId }, { userPets: updatedUser.userPets });
 			if (fosterPet == 'true') {
@@ -145,42 +142,44 @@ async function getPet(req, res, next) {
 }
 
 router.post('/addPet', authenticateToken, async (req, res) => {
-	const uploadedResponse = await cloudinary.uploader.upload(
-		req.body.newPet.petImg
-	);
-	const imgUrl = uploadedResponse.url;
-	console.log(imgUrl);
+	try {
+		const uploadedResponse = await cloudinary.uploader.upload(
+			req.body.newPet.petImg
+		);
+		const imgUrl = uploadedResponse.url;
 
-	const newPetInfo = req.body.newPet;
-	const pet = new Pet({
-		name: newPetInfo.name,
-		status: newPetInfo.status,
-		description: newPetInfo.description,
-		type: newPetInfo.type,
-		height: newPetInfo.height,
-		weight: newPetInfo.weight,
-		color: newPetInfo.color,
-		hypoallergenic: newPetInfo.hypoallergenic,
-		diet: newPetInfo.diet,
-		breed: newPetInfo.breed,
-		petImg: imgUrl,
-	});
-	let error = pet.validateSync();
-	if (error) {
-		console.log(Object.keys(error.errors)[0]);
-		const unValidField = Object.keys(error.errors)[0];
-		const errorPath = error.errors[`${unValidField}`].properties.path;
+		const newPetInfo = req.body.newPet;
+		const pet = new Pet({
+			name: newPetInfo.name,
+			status: newPetInfo.status,
+			description: newPetInfo.description,
+			type: newPetInfo.type,
+			height: newPetInfo.height,
+			weight: newPetInfo.weight,
+			color: newPetInfo.color,
+			hypoallergenic: newPetInfo.hypoallergenic,
+			diet: newPetInfo.diet,
+			breed: newPetInfo.breed,
+			petImg: imgUrl,
+		});
+		let error = pet.validateSync();
+		if (error) {
+			const unValidField = Object.keys(error.errors)[0];
+			const errorPath = error.errors[`${unValidField}`].properties.path;
 
-		return res
-			.status(400)
-			.json(error.errors[`${errorPath}`].properties.message);
-	} else {
-		try {
-			const newPet = await pet.save();
-			res.json(newPet);
-		} catch (err) {
-			res.status(400).json({ message: err.message });
+			return res
+				.status(400)
+				.json(error.errors[`${errorPath}`].properties.message);
+		} else {
+			try {
+				const newPet = await pet.save();
+				res.json(newPet);
+			} catch (err) {
+				res.status(400).json({ message: err.message });
+			}
 		}
+	} catch (error) {
+		res.status(400).json({ message: error.message });
 	}
 });
 module.exports = router;

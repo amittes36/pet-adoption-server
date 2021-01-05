@@ -4,25 +4,33 @@ const petsSchema = new mongoose.Schema({
 	name: {
 		type: String,
 		required: true,
+		minlength: [4, 'Name is too short'],
+		maxlength: [100, 'Name is too long'],
 	},
 	status: {
 		type: String,
 		required: true,
+		maxlength: [100, 'Status name is too long'],
 	},
 	description: {
 		type: String,
 		required: true,
+		maxlength: [
+			200,
+			'Description is too long, max chars for description is 200',
+		],
 	},
 	type: {
 		type: String,
 		required: true,
+		maxlength: [100, 'Type is too long'],
 	},
 	height: {
-		type: String,
+		type: Number,
 		required: true,
 	},
 	weight: {
-		type: String,
+		type: Number,
 		required: true,
 	},
 	color: {
@@ -32,6 +40,10 @@ const petsSchema = new mongoose.Schema({
 	hypoallergenic: {
 		type: String,
 		required: true,
+		maxlength: [
+			200,
+			'Hypoallergenic is too long, max chars for description is 200',
+		],
 	},
 	diet: {
 		type: String,
@@ -40,10 +52,7 @@ const petsSchema = new mongoose.Schema({
 	breed: {
 		type: String,
 		required: true,
-	},
-	breed: {
-		type: String,
-		required: true,
+		maxlength: [100, 'Breed is too long'],
 	},
 	petImg: {
 		type: String,

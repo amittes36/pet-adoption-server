@@ -34,7 +34,9 @@ router.patch(
 
 			const userId = req.params.userId;
 			const updatedUser = await User.findById(userId);
-			updatedUser.userPets.push(req.params.petId);
+			const pet = await Pet.findById(req.params.petId);
+			console.log(pet.status);
+			if (pet.status != 'Fostered') updatedUser.userPets.push(req.params.petId);
 			await User.updateOne({ _id: userId }, { userPets: updatedUser.userPets });
 			if (fosterPet == 'true') {
 				await Pet.updateOne({ _id: req.params.petId }, { status: 'Fostered' });
@@ -82,8 +84,31 @@ router.get('/all', async (req, res) => {
 router.get('/search/:searchInfo', async (req, res) => {
 	try {
 		const searchInfo = JSON.parse(req.params.searchInfo);
-		const resultsPets = await Pet.find(searchInfo);
-		res.json(resultsPets);
+		let searchMaxHeight;
+		let searchMinHeight;
+		if (searchInfo.maxHeight) {
+			searchMaxHeight = parseInt(searchInfo.maxHeight);
+			delete searchInfo['maxHeight'];
+		}
+		if (searchInfo.minHeight) {
+			searchMinHeight = parseInt(searchInfo.minHeight);
+			delete searchInfo['minHeight'];
+		}
+		console.log(typeof searchMaxHeight);
+		console.log(searchInfo);
+
+		const resultsPets = await Pet.find({
+			$and: [
+				{
+					height: { $lte: searchMaxHeight || 5000 },
+				},
+				{
+					height: { $gte: searchMinHeight || 0 },
+				},
+				searchInfo,
+			],
+		});
+		res.status(200).json(resultsPets || 'not found');
 	} catch (err) {
 		res.status(500).json({ message: err.message });
 	}
@@ -105,36 +130,42 @@ async function getPet(req, res, next) {
 }
 
 router.post('/addPet', authenticateToken, async (req, res) => {
-	try {
-		const uploadedResponse = await cloudinary.uploader.upload(
-			req.body.newPet.petImg
-		);
-		const imgUrl = uploadedResponse.url;
-		console.log(imgUrl);
+	const uploadedResponse = await cloudinary.uploader.upload(
+		req.body.newPet.petImg
+	);
+	const imgUrl = uploadedResponse.url;
+	console.log(imgUrl);
 
-		// console.log(`uploadedImg:=:${JSON.stringify(uploadedResponse)}`);
+	const newPetInfo = req.body.newPet;
+	const pet = new Pet({
+		name: newPetInfo.name,
+		status: newPetInfo.status,
+		description: newPetInfo.description,
+		type: newPetInfo.type,
+		height: newPetInfo.height,
+		weight: newPetInfo.weight,
+		color: newPetInfo.color,
+		hypoallergenic: newPetInfo.hypoallergenic,
+		diet: newPetInfo.diet,
+		breed: newPetInfo.breed,
+		petImg: imgUrl,
+	});
+	let error = pet.validateSync();
+	if (error) {
+		console.log(Object.keys(error.errors)[0]);
+		const unValidField = Object.keys(error.errors)[0];
+		const errorPath = error.errors[`${unValidField}`].properties.path;
 
-		const newPetInfo = req.body.newPet;
-		const pet = new Pet({
-			name: newPetInfo.name,
-			status: newPetInfo.status,
-			description: newPetInfo.description,
-			type: newPetInfo.type,
-			height: newPetInfo.height,
-			weight: newPetInfo.weight,
-			color: newPetInfo.color,
-			hypoallergenic: newPetInfo.hypoallergenic,
-			diet: newPetInfo.diet,
-			breed: newPetInfo.breed,
-			petImg: imgUrl,
-		});
-		const newPet = await pet.save();
-
-		res.json(newPet);
-	} catch (err) {
-		console.log(err);
-
-		res.status(400).json({ message: err.message });
+		return res
+			.status(400)
+			.json(error.errors[`${errorPath}`].properties.message);
+	} else {
+		try {
+			const newPet = await pet.save();
+			res.json(newPet);
+		} catch (err) {
+			res.status(400).json({ message: err.message });
+		}
 	}
 });
 module.exports = router;

@@ -64,6 +64,11 @@ async function getUser(req, res, next) {
 
 router.post('/', async (req, res) => {
 	const newUserInfo = req.body.newUser;
+	const checkIfEmailExists = await User.findOne({ email: newUserInfo.email });
+	if (checkIfEmailExists) {
+		res.status(500).json('Email already Signed up');
+	}
+
 	const user = new User({
 		firstName: newUserInfo.firstName,
 		lastName: newUserInfo.lastName,
@@ -76,8 +81,6 @@ router.post('/', async (req, res) => {
 		console.log(Object.keys(error.errors)[0]);
 		const unValidField = Object.keys(error.errors)[0];
 		const errorPath = error.errors[`${unValidField}`].properties.path;
-		// console.log(error.errors[`${errorPath}`].properties.message);
-		// console.log(error.errors);
 
 		return res
 			.status(400)

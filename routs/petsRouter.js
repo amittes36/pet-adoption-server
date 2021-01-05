@@ -86,6 +86,9 @@ router.get('/search/:searchInfo', async (req, res) => {
 		const searchInfo = JSON.parse(req.params.searchInfo);
 		let searchMaxHeight;
 		let searchMinHeight;
+		let searchMaxWeight;
+		let searchMinWeight;
+
 		if (searchInfo.maxHeight) {
 			searchMaxHeight = parseInt(searchInfo.maxHeight);
 			delete searchInfo['maxHeight'];
@@ -94,8 +97,14 @@ router.get('/search/:searchInfo', async (req, res) => {
 			searchMinHeight = parseInt(searchInfo.minHeight);
 			delete searchInfo['minHeight'];
 		}
-		console.log(typeof searchMaxHeight);
-		console.log(searchInfo);
+		if (searchInfo.maxWeight) {
+			searchMaxWeight = parseInt(searchInfo.maxWeight);
+			delete searchInfo['maxWeight'];
+		}
+		if (searchInfo.minWeight) {
+			searchMinWeight = parseInt(searchInfo.minWeight);
+			delete searchInfo['minWeight'];
+		}
 
 		const resultsPets = await Pet.find({
 			$and: [
@@ -104,6 +113,12 @@ router.get('/search/:searchInfo', async (req, res) => {
 				},
 				{
 					height: { $gte: searchMinHeight || 0 },
+				},
+				{
+					weight: { $lte: searchMaxWeight || 5000 },
+				},
+				{
+					weight: { $gte: searchMinWeight || 0 },
 				},
 				searchInfo,
 			],

@@ -183,4 +183,49 @@ router.post('/addPet', authenticateToken, async (req, res) => {
 		res.status(400).json({ message: error.message });
 	}
 });
+
+router.patch('/petEdit/:id', authenticateToken, getPet, async (req, res) => {
+	const updatedInfo = req.body.updatedInfo;
+	if (updatedInfo.name != null) {
+		res.pet.name = updatedInfo.name;
+	}
+	if (updatedInfo.status != null) {
+		res.pet.status = updatedInfo.status;
+	}
+	if (updatedInfo.description != null) {
+		res.pet.description = updatedInfo.description;
+	}
+	if (updatedInfo.type != null) {
+		res.pet.type = updatedInfo.type;
+	}
+	if (updatedInfo.height != null) {
+		res.pet.height = updatedInfo.height;
+	}
+	if (updatedInfo.weight != null) {
+		res.pet.weight = updatedInfo.weight;
+	}
+	if (updatedInfo.color != null) {
+		res.pet.color = updatedInfo.color;
+	}
+	if (updatedInfo.hypoallergenic != null) {
+		res.pet.hypoallergenic = updatedInfo.hypoallergenic;
+	}
+	if (updatedInfo.diet != null) {
+		res.pet.diet = updatedInfo.diet;
+	}
+	if (updatedInfo.breed != null) {
+		res.pet.breed = updatedInfo.breed;
+	}
+	if (updatedInfo.petImg != null) {
+		res.pet.petImg = updatedInfo.petImg;
+	}
+
+	try {
+		const updatedPet = await res.pet.save();
+		res.json(updatedPet);
+	} catch (err) {
+		res.status(400).json({ message: err.message });
+	}
+});
+
 module.exports = router;

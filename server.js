@@ -9,7 +9,6 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const jwt = require('jsonwebtoken');
-
 let tokenes = [];
 let users = [];
 let pets = [];

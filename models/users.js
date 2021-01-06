@@ -25,6 +25,11 @@ const usersSchema = new mongoose.Schema({
 	userPets: {
 		type: Array,
 	},
+	role: {
+		type: String,
+		required: false,
+		maxlength: [100, 'Role is too long'],
+	},
 });
 
 module.exports = mongoose.model('User', usersSchema);

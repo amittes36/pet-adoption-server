@@ -77,6 +77,7 @@ router.post('/', async (req, res) => {
 		email: newUserInfo.email,
 		password: newUserInfo.password,
 		usersPets: [],
+		savedPets: [],
 	});
 	let error = user.validateSync();
 	if (error) {

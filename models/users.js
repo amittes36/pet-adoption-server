@@ -25,6 +25,9 @@ const usersSchema = new mongoose.Schema({
 	userPets: {
 		type: Array,
 	},
+	savedPets: {
+		type: Array,
+	},
 	role: {
 		type: String,
 		required: false,

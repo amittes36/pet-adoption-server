@@ -41,7 +41,7 @@ router.post('/login', async (req, res) => {
 router.get('/all', async (req, res) => {
 	try {
 		const users = await User.find();
-		res.json(users);
+		res.send(users);
 	} catch (err) {
 		res.status(500).json({ message: err.message });
 	}
@@ -70,11 +70,13 @@ router.post('/', async (req, res) => {
 	if (checkIfEmailExists) {
 		res.status(500).json('Email already Signed up');
 	}
+	console.log(newUserInfo.phone);
 
 	const user = new User({
 		firstName: newUserInfo.firstName,
 		lastName: newUserInfo.lastName,
 		email: newUserInfo.email,
+		phone: newUserInfo.phone,
 		password: newUserInfo.password,
 		usersPets: [],
 		savedPets: [],
@@ -82,10 +84,8 @@ router.post('/', async (req, res) => {
 	});
 	let error = user.validateSync();
 	if (error) {
-		console.log(Object.keys(error.errors)[0]);
 		const unValidField = Object.keys(error.errors)[0];
 		const errorPath = error.errors[`${unValidField}`].properties.path;
-
 		return res
 			.status(400)
 			.json(error.errors[`${errorPath}`].properties.message);
@@ -100,21 +100,24 @@ router.post('/', async (req, res) => {
 });
 router.patch('/:id', authenticateToken, getUser, async (req, res) => {
 	const updatedInfo = req.body.updatedInfo;
-	if (updatedInfo.firstName != null) {
-		res.user.firstName = updatedInfo.firstName;
-	}
-	if (updatedInfo.lastName != null) {
-		res.user.lastName = updatedInfo.lastName;
-	}
-	if (updatedInfo.email != null) {
-		res.user.email = updatedInfo.email;
-	}
-	if (updatedInfo.password != null) {
-		res.user.password = updatedInfo.password;
-	}
+	if (updatedInfo) {
+		if (updatedInfo.firstName != null) {
+			res.user.firstName = updatedInfo.firstName;
+		}
+		if (updatedInfo.lastName != null) {
+			res.user.lastName = updatedInfo.lastName;
+		}
+		if (updatedInfo.email != null) {
+			res.user.email = updatedInfo.email;
+		}
+		if (updatedInfo.password != null) {
+			res.user.password = updatedInfo.password;
+		}
+	} else res.json('please enter at least one field');
+
 	try {
 		const updatedUser = await res.user.save();
-		res.json(updatedUser);
+		res.send('User was updated successfully');
 	} catch (err) {
 		res.status(400).json({ message: err.message });
 	}

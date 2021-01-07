@@ -16,6 +16,12 @@ const usersSchema = new mongoose.Schema({
 		required: true,
 		maxlength: [100, 'Email name is too long'],
 	},
+	phone: {
+		type: String,
+		required: false,
+		maxlength: [30, 'Phone number is too long'],
+		minlength: [4, 'Phone number is too short'],
+	},
 	password: {
 		type: String,
 		required: true,

@@ -128,6 +128,13 @@ router.get('/all', async (req, res) => {
 router.get('/search/:searchInfo', async (req, res) => {
 	try {
 		const searchInfo = JSON.parse(req.params.searchInfo);
+		if (!Object.keys(searchInfo).length) {
+			console.log('hi');
+
+			res.status(400).json({ message: 'Please enter at least one field' });
+		}
+		console.log(Object.keys(searchInfo).length);
+
 		let searchMaxHeight;
 		let searchMinHeight;
 		let searchMaxWeight;
@@ -169,7 +176,7 @@ router.get('/search/:searchInfo', async (req, res) => {
 		});
 		res.status(200).json(resultsPets || 'not found');
 	} catch (err) {
-		res.status(500).json({ message: err.message });
+		res.status(400).json({ message: err.message });
 	}
 });
 router.get('/:id', getPet, (req, res) => {
@@ -190,11 +197,14 @@ async function getPet(req, res, next) {
 
 router.post('/addPet', authenticateToken, async (req, res) => {
 	try {
-		const uploadedResponse = await cloudinary.uploader.upload(
-			req.body.newPet.petImg
-		);
-		const imgUrl = uploadedResponse.url;
-
+		let uploadedResponse;
+		let imgUrl;
+		if (req.body.newPet.petImg) {
+			uploadedResponse = await cloudinary.uploader.upload(
+				req.body.newPet.petImg
+			);
+			imgUrl = uploadedResponse.url;
+		}
 		const newPetInfo = req.body.newPet;
 		const pet = new Pet({
 			name: newPetInfo.name,
@@ -210,17 +220,17 @@ router.post('/addPet', authenticateToken, async (req, res) => {
 			petImg: imgUrl,
 		});
 		let error = pet.validateSync();
+
 		if (error) {
 			const unValidField = Object.keys(error.errors)[0];
 			const errorPath = error.errors[`${unValidField}`].properties.path;
-
-			return res
-				.status(400)
-				.json(error.errors[`${errorPath}`].properties.message);
+			const errMessage = error.errors[`${errorPath}`].properties.message;
+			console.log(errMessage);
+			return res.status(400).json(errMessage);
 		} else {
 			try {
 				const newPet = await pet.save();
-				res.json(newPet);
+				res.json('Pet was added successfully');
 			} catch (err) {
 				res.status(400).json({ message: err.message });
 			}

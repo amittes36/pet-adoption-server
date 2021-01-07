@@ -56,7 +56,7 @@ const petsSchema = new mongoose.Schema({
 	},
 	petImg: {
 		type: String,
-		required: true,
+		required: false,
 	},
 });
 

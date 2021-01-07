@@ -47,6 +47,52 @@ router.patch(
 		}
 	}
 );
+//save Pet
+router.patch(
+	'/save/:petId/:userId/:fosterPet',
+	authenticateToken,
+	async (req, res) => {
+		try {
+			const userId = req.params.userId;
+			const updatedUser = await User.findById(userId);
+			const pet = await Pet.findById(req.params.petId);
+			updatedUser.savedPets.push(req.params.petId);
+			await User.updateOne(
+				{ _id: userId },
+				{ savedPets: updatedUser.savedPets }
+			);
+
+			res.json('ok');
+		} catch (err) {
+			res.status(400).json({ message: err.message });
+		}
+	}
+);
+
+//unsave pet
+router.patch(
+	'/unsave/:petId/:userId/:fosterPet',
+	authenticateToken,
+	async (req, res) => {
+		try {
+			const petId = req.params.petId;
+			const userId = req.params.userId;
+			const updatedUser = await User.findById(userId);
+			const index = updatedUser.savedPets.indexOf(petId);
+			if (index > -1) {
+				updatedUser.savedPets.splice(index, 1);
+			} else res.json('Pet is not saved');
+			await User.updateOne(
+				{ _id: userId },
+				{ savedPets: updatedUser.savedPets }
+			);
+			res.json('unsaved successfully');
+		} catch (err) {
+			res.status(400).json({ message: err.message });
+		}
+	}
+);
+
 router.patch(
 	'/return/:petId/:userId/:fosterPet',
 	authenticateToken,

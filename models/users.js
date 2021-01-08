@@ -22,6 +22,11 @@ const usersSchema = new mongoose.Schema({
 		maxlength: [30, 'Phone number is too long'],
 		minlength: [4, 'Phone number is too short'],
 	},
+	bio: {
+		type: String,
+		required: true,
+		maxlength: [400, 'Bio name is too long'],
+	},
 	password: {
 		type: String,
 		required: true,

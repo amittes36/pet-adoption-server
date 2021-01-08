@@ -278,7 +278,7 @@ router.patch('/petEdit/:id', authenticateToken, getPet, async (req, res) => {
 
 	try {
 		const updatedPet = await res.pet.save();
-		res.json(updatedPet);
+		res.json('OK');
 	} catch (err) {
 		res.status(400).json({ message: err.message });
 	}

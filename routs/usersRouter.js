@@ -78,6 +78,7 @@ router.post('/', async (req, res) => {
 		email: newUserInfo.email,
 		phone: newUserInfo.phone,
 		password: newUserInfo.password,
+		bio: 'empty',
 		usersPets: [],
 		savedPets: [],
 		role: 'user',
@@ -113,13 +114,16 @@ router.patch('/:id', authenticateToken, getUser, async (req, res) => {
 		if (updatedInfo.password != null) {
 			res.user.password = updatedInfo.password;
 		}
-	} else res.json('please enter at least one field');
+		if (updatedInfo.bio != null) {
+			res.user.bio = updatedInfo.bio;
+		}
+	} else res.status(400).json('Please enter at least one field');
 
 	try {
 		const updatedUser = await res.user.save();
-		res.send('User was updated successfully');
+		res.send(updatedUser);
 	} catch (err) {
-		res.status(400).json({ message: err.message });
+		res.status(403).json({ message: err.message });
 	}
 });
 

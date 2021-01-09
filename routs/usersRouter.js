@@ -6,18 +6,6 @@ const cors = require('cors');
 const { get } = require('./petsRouter');
 const { authenticateToken, authRole } = require('../userAuth');
 
-// function authenticateToken(req, res, next) {
-// 	const authHeader = req.headers['authorization'];
-// 	const token = authHeader && authHeader.split(' ')[1];
-// 	console.log(token);
-// 	if (token == null) return res.sendStatus(401);
-// 	jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-// 		if (err) return res.sendStatus(403);
-// 		req.user = user;
-// 		next();
-// 	});
-// }
-
 function generateAccessToken(user) {
 	return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET);
 }
@@ -70,8 +58,6 @@ router.post('/', async (req, res) => {
 	if (checkIfEmailExists) {
 		res.status(500).json('Email already Signed up');
 	}
-	console.log(newUserInfo.phone);
-
 	const user = new User({
 		firstName: newUserInfo.firstName,
 		lastName: newUserInfo.lastName,
@@ -99,6 +85,7 @@ router.post('/', async (req, res) => {
 		}
 	}
 });
+
 router.patch('/:id', authenticateToken, getUser, async (req, res) => {
 	const updatedInfo = req.body.updatedInfo;
 	if (updatedInfo) {

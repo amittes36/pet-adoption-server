@@ -11,18 +11,12 @@ router.use(cors());
 function authenticateToken(req, res, next) {
 	const authHeader = req.headers['authorization'];
 	const token = authHeader && authHeader.split(' ')[1];
-	console.log(token);
-
 	if (token == null) return res.sendStatus(401);
 	jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
 		if (err) return res.sendStatus(403);
 		req.user = user;
 		next();
 	});
-}
-
-function generateAccessToken(user) {
-	return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET);
 }
 
 router.patch(
@@ -47,7 +41,7 @@ router.patch(
 		}
 	}
 );
-//save Pet
+
 router.patch(
 	'/save/:petId/:userId/:fosterPet',
 	authenticateToken,
@@ -61,7 +55,6 @@ router.patch(
 				{ _id: userId },
 				{ savedPets: updatedUser.savedPets }
 			);
-
 			res.json('ok');
 		} catch (err) {
 			res.status(400).json({ message: err.message });
@@ -69,7 +62,6 @@ router.patch(
 	}
 );
 
-//unsave pet
 router.patch(
 	'/unsave/:petId/:userId/:fosterPet',
 	authenticateToken,
@@ -105,10 +97,8 @@ router.patch(
 			if (index > -1) {
 				updatedUser.userPets.splice(index, 1);
 			}
-
 			await User.updateOne({ _id: userId }, { userPets: updatedUser.userPets });
 			await Pet.updateOne({ _id: petId }, { status: 'Available' });
-
 			res.json('ok');
 		} catch (err) {
 			res.status(400).json({ message: err.message });
@@ -129,17 +119,12 @@ router.get('/search/:searchInfo', async (req, res) => {
 	try {
 		const searchInfo = JSON.parse(req.params.searchInfo);
 		if (!Object.keys(searchInfo).length) {
-			console.log('hi');
-
 			res.status(400).json({ message: 'Please enter at least one field' });
 		}
-		console.log(Object.keys(searchInfo).length);
-
 		let searchMaxHeight;
 		let searchMinHeight;
 		let searchMaxWeight;
 		let searchMinWeight;
-
 		if (searchInfo.maxHeight) {
 			searchMaxHeight = parseInt(searchInfo.maxHeight);
 			delete searchInfo['maxHeight'];
@@ -156,7 +141,6 @@ router.get('/search/:searchInfo', async (req, res) => {
 			searchMinWeight = parseInt(searchInfo.minWeight);
 			delete searchInfo['minWeight'];
 		}
-
 		const resultsPets = await Pet.find({
 			$and: [
 				{
@@ -179,9 +163,11 @@ router.get('/search/:searchInfo', async (req, res) => {
 		res.status(400).json({ message: err.message });
 	}
 });
+
 router.get('/:id', getPet, (req, res) => {
 	res.send(res.pet);
 });
+
 async function getPet(req, res, next) {
 	try {
 		pet = await Pet.findById(req.params.id);
@@ -225,7 +211,6 @@ router.post('/addPet', authenticateToken, async (req, res) => {
 			const unValidField = Object.keys(error.errors)[0];
 			const errorPath = error.errors[`${unValidField}`].properties.path;
 			const errMessage = error.errors[`${errorPath}`].properties.message;
-			console.log(errMessage);
 			return res.status(400).json(errMessage);
 		} else {
 			try {
@@ -275,7 +260,6 @@ router.patch('/petEdit/:id', authenticateToken, getPet, async (req, res) => {
 	if (updatedInfo.petImg != null) {
 		res.pet.petImg = updatedInfo.petImg;
 	}
-
 	try {
 		const updatedPet = await res.pet.save();
 		res.json('OK');

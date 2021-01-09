@@ -4,7 +4,6 @@ const petsSchema = new mongoose.Schema({
 	name: {
 		type: String,
 		required: true,
-		minlength: [4, 'Name is too short'],
 		maxlength: [100, 'Name is too long'],
 	},
 	status: {

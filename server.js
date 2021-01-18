@@ -1,19 +1,15 @@
 require('dotenv').config();
 const express = require('express');
 const app = express();
-const mongoose = require('mongoose');
+const connectDB = require('./util/db');
 const PORT = process.env.PORT || 5000;
 const cors = require('cors');
 const bodyParser = require('body-parser');
-mongoose.connect(
-	process.env.MONGODB_URI ||
-		`mongodb+srv://admin_user:${process.env.DB_PASS}@cluster0.8pu0h.mongodb.net/<dbname>?retryWrites=true&w=majority`,
-	{
-		useUnifiedTopology: true,
-		useNewUrlParser: true,
-	}
-);
+
+connectDB();
+
 app.use(bodyParser.json({ limit: '50mb' }));
+
 app.use(
 	bodyParser.urlencoded({
 		limit: '50mb',
